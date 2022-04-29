@@ -36,10 +36,7 @@ namespace SoftSensConf_AK_4
         List<string> listAlarmLow = new List<string>();
         List<string> listAlarmHigh = new List<string>();
 
-        int DAU_ID = 100000;
-        int Prod_ID = 200000;
-        string Area_Code = "A1";
-        int IO_ID = 300000;
+        
 
         public Form1()
         {
@@ -294,33 +291,28 @@ namespace SoftSensConf_AK_4
         }
         private void buttonSaveConfig_Click(object sender, EventArgs e)
         {
-            string ID, URV, LRV, alarmHigh, alarmLow;
+            string ID, sqlQuery;
+            float URV, LRV;
+            int alarmLow, alarmHigh;
             
             List<string> list = new List<string>(textboxParameterInfo.Text.Split('\n'));
 
             try
             {
-                ID = list[0];
-                URV = list[1];
-                LRV = list[2];
-                alarmHigh = list[3];
-                alarmLow = list[4];
+                ID = list[1];
+                URV = float.Parse(list[2]);
+                LRV = float.Parse(list[3]);
+                alarmHigh = int.Parse(list[4]);
+                alarmLow = int.Parse(list[5]);
+                string DAU_ID = "100000";
+                string Prod_ID = "200000";
+                string Area_Code = "A1";
+                string IO_ID = "300000";
                 SqlConnection con = new SqlConnection(conSoftSensConf);
-                SqlCommand sql = new SqlCommand("uspInsertInstrument", con);
-                sql.CommandType = CommandType.StoredProcedure;
+                sqlQuery = String.Concat(@"INSERT INTO Instrument VALUES ('", ID,"', '", LRV, "', '", URV, "', '", alarmLow, "', '", alarmHigh, "', '", DAU_ID, "','", Prod_ID, "', '", Area_Code, "', '", IO_ID, "')");
                 con.Open();
-                //MessageBox.Show(@sql.CommandText);
-                sql.Parameters.Add(new SqlParameter("@Tag", ID));
-                sql.Parameters.Add(new SqlParameter("@LRV", LRV));
-                sql.Parameters.Add(new SqlParameter("@URV", URV));
-                sql.Parameters.Add(new SqlParameter("@Alerm_Low", alarmLow));
-                sql.Parameters.Add(new SqlParameter("@Alarm_High", alarmHigh));
-                sql.Parameters.Add(new SqlParameter("@DAU_ID", DAU_ID));
-                sql.Parameters.Add(new SqlParameter("@Producer_ID", Prod_ID));
-                sql.Parameters.Add(new SqlParameter("@Areacode", Area_Code));
-                sql.Parameters.Add(new SqlParameter("@IO_ID", IO_ID));
-                //MessageBox.Show(@sql.CommandText);
-                sql.ExecuteNonQuery();
+                SqlCommand command = new SqlCommand(sqlQuery, con);
+                command.ExecuteNonQuery();
                 con.Close();
             }
             catch (Exception error)
@@ -334,6 +326,12 @@ namespace SoftSensConf_AK_4
         {
             try
             {
+                listID.Clear();
+                listLRV.Clear();
+                listURV.Clear();
+                listAlarmLow.Clear();
+                listAlarmHigh.Clear();
+
                 SqlConnection con = new SqlConnection(conSoftSensConf);
                 string sqlQuery = "SELECT Tag, LRV, URV, Alerm_Low, Alarm_High FROM Instrument";
                 SqlCommand sql = new SqlCommand(sqlQuery, con);
@@ -354,12 +352,83 @@ namespace SoftSensConf_AK_4
                 }
                 con.Close();
 
-                string newConfig = (listID[0] + ";" + listLRV[0] + ";" + listURV[0] + ";" + listAlarmLow[0] + ";" + listAlarmHigh[0]);
-                textboxParameterInfo.Text = newConfig;
+                textboxParameterInfo.Clear();
+                textboxParameterInfo.AppendText("Available Configurations:" + "\r\n");
+
+                for (int i = 0; i < listID.Count; i++)
+                {
+                    string Config = ((i+1) + ": " + listID[i] + ";" + listLRV[i] + ";" + listURV[i] + ";" + listAlarmLow[i] + ";" + listAlarmHigh[i]);
+                    textboxParameterInfo.AppendText(Config + "\r\n");
+                }
+
+                string configBox = Interaction.InputBox("You need to choose a config. Please enter a number coresponding with the config you want:", "Selected Config Needed", "..", 10, 10);
+
+                string newConfig = (listID[int.Parse(configBox)-1] + ";" + listLRV[int.Parse(configBox)-1] + ";" + listURV[int.Parse(configBox)-1] + ";" + listAlarmLow[int.Parse(configBox)-1] + ";" + listAlarmHigh[int.Parse(configBox)-1]);
+
+                string passwordBox = Interaction.InputBox("Authentication is required to update instrument values. Please enter password:", "Authentication Required", "..", 10, 10);
+
+                newConfig = ("writeconf>" + passwordBox + ">" + newConfig);
+
+                serialPort1.WriteLine(newConfig);
             }
             catch (Exception error)
             {
                 MessageBox.Show(error.Message);
+            }
+        }
+
+        private void buttonReadScaled_Click(object sender, EventArgs e)
+        {
+            timerReadScaled.Start();
+        }
+
+        private void buttonReadRaw_Click(object sender, EventArgs e)
+        {
+            timerReadRaw.Start();
+        }
+
+        private void buttonStopReading_Click(object sender, EventArgs e)
+        {
+            if (timerReadRaw.Enabled == true)
+            {
+                timerReadRaw.Stop();
+
+                string Tag, sqlQuery;
+
+                List<string> list = new List<string> (textboxParameterInfo.Text.Split('\n'));
+
+                Tag = list[1];
+
+                for(int i = 0; i < analogReading.Count; i++)
+                {
+                    SqlConnection con = new SqlConnection(conSoftSensConf);
+                    sqlQuery = String.Concat(@"INSERT INTO Datalog (Raw_Values, Date_time, Instrument_Tag) VALUES ('", analogReading[i],"', '", timestampRaw[i],"', '", Tag,"')");
+                    con.Open();
+                    SqlCommand command = new SqlCommand(sqlQuery, con);
+                    command.ExecuteNonQuery();
+                    con.Close();
+                }
+            }
+
+            if (timerReadScaled.Enabled == true)
+            {
+                timerReadScaled.Stop();
+
+                string Tag1, sqlQuery;
+
+                List<string> list1 = new List<string>(textboxParameterInfo.Text.Split('\n'));
+
+                Tag1 = list1[1];
+
+                for (int i = 0; i < analogReading.Count; i++)
+                {
+                    SqlConnection con = new SqlConnection(conSoftSensConf);
+                    sqlQuery = String.Concat(@"INSERT INTO Datalog (Scaled_Values, Date_time, Instrument_Tag) VALUES ('", scaledReading[i], "', '", timestampScaled[i], "', '", Tag1, "')");
+                    con.Open();
+                    SqlCommand command = new SqlCommand(sqlQuery, con);
+                    command.ExecuteNonQuery();
+                    con.Close();
+                }
             }
         }
     }

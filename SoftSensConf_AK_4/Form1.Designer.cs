@@ -53,6 +53,7 @@
             this.textboxValueSet = new System.Windows.Forms.TextBox();
             this.comboboxParameterSelect = new System.Windows.Forms.ComboBox();
             this.valuesTabPage = new System.Windows.Forms.TabPage();
+            this.buttonStopReading = new System.Windows.Forms.Button();
             this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
@@ -276,6 +277,7 @@
             // 
             // valuesTabPage
             // 
+            this.valuesTabPage.Controls.Add(this.buttonStopReading);
             this.valuesTabPage.Controls.Add(this.chart1);
             this.valuesTabPage.Controls.Add(this.label7);
             this.valuesTabPage.Controls.Add(this.label6);
@@ -292,6 +294,16 @@
             this.valuesTabPage.Text = "Values";
             this.valuesTabPage.UseVisualStyleBackColor = true;
             // 
+            // buttonStopReading
+            // 
+            this.buttonStopReading.Location = new System.Drawing.Point(485, 361);
+            this.buttonStopReading.Name = "buttonStopReading";
+            this.buttonStopReading.Size = new System.Drawing.Size(107, 28);
+            this.buttonStopReading.TabIndex = 8;
+            this.buttonStopReading.Text = "Stop";
+            this.buttonStopReading.UseVisualStyleBackColor = true;
+            this.buttonStopReading.Click += new System.EventHandler(this.buttonStopReading_Click);
+            // 
             // chart1
             // 
             chartArea1.Name = "ChartArea1";
@@ -303,11 +315,11 @@
             series1.ChartArea = "ChartArea1";
             series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series1.Legend = "Legend1";
-            series1.Name = "Raw";
+            series1.Name = "Scaled Values";
             series2.ChartArea = "ChartArea1";
             series2.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
             series2.Legend = "Legend1";
-            series2.Name = "Scaled";
+            series2.Name = "Raw Values";
             this.chart1.Series.Add(series1);
             this.chart1.Series.Add(series2);
             this.chart1.Size = new System.Drawing.Size(589, 305);
@@ -354,6 +366,7 @@
             this.buttonReadRaw.TabIndex = 2;
             this.buttonReadRaw.Text = "Read Raw";
             this.buttonReadRaw.UseVisualStyleBackColor = true;
+            this.buttonReadRaw.Click += new System.EventHandler(this.buttonReadRaw_Click);
             // 
             // buttonReadScaled
             // 
@@ -363,6 +376,7 @@
             this.buttonReadScaled.TabIndex = 1;
             this.buttonReadScaled.Text = "Read Scaled";
             this.buttonReadScaled.UseVisualStyleBackColor = true;
+            this.buttonReadScaled.Click += new System.EventHandler(this.buttonReadScaled_Click);
             // 
             // textboxValueInfo
             // 
@@ -501,6 +515,7 @@
         private System.Windows.Forms.TextBox textboxAlarmLow;
         private System.Windows.Forms.Timer timerConnectionStatus;
         private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
+        private System.Windows.Forms.Button buttonStopReading;
     }
 }
 
